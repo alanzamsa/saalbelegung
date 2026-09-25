@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2B683D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Saalbelegung">
+<meta name="robots" content="noindex">
+<title>Saalbelegung · Neustadthalle</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232B683D'/%3E%3Crect x='12' y='14' width='18' height='16' rx='4' fill='%23BFCD73'/%3E%3Crect x='34' y='14' width='18' height='16' rx='4' fill='%23fff'/%3E%3Crect x='12' y='34' width='18' height='16' rx='4' fill='%23fff'/%3E%3Crect x='34' y='34' width='18' height='16' rx='4' fill='%23B4443A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=KoHo:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F6F7F2; --surface:#FFFFFF; --ink:#262321; --muted:#6D6461; --line:#E1E4D8; --line-strong:#C9CEBB;
+  --primary:#2B683D; --olive:#9CAE53; --lime:#BFCD73; --primary-ink:#FFFFFF;
+  --free:#FFFFFF; --free-line:#D5DAC9; --weekend:#EEF0E6;
+  --booked:#B4443A; --booked-ink:#FFFFFF; --option:#E0A526; --option-2:#F1C766; --option-ink:#3A2A05;
+  --focus:#2B683D; --shadow:0 1px 2px rgba(38,35,33,.06),0 4px 16px rgba(38,35,33,.05);
+  --font:"KoHo",ui-rounded,"Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121510; --surface:#1B1F18; --ink:#ECEEE5; --muted:#A79F9B; --line:#2B3127; --line-strong:#3C4436;
+    --primary:#7DB48B; --olive:#AFC06A; --lime:#C9D68A; --primary-ink:#0F1A12;
+    --free:#1F241C; --free-line:#343B2F; --weekend:#171B15;
+    --booked:#D06158; --booked-ink:#1A0B09; --option:#E7B447; --option-2:#B98A26; --option-ink:#231A04;
+    --focus:#AFC06A; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121510; --surface:#1B1F18; --ink:#ECEEE5; --muted:#A79F9B; --line:#2B3127; --line-strong:#3C4436;
+  --primary:#7DB48B; --olive:#AFC06A; --lime:#C9D68A; --primary-ink:#0F1A12;
+  --free:#1F241C; --free-line:#343B2F; --weekend:#171B15;
+  --booked:#D06158; --booked-ink:#1A0B09; --option:#E7B447; --option-2:#B98A26; --option-ink:#231A04;
+  --focus:#AFC06A; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;padding:0 16px;padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){ .cell,.tile{transition:background-color .15s,border-color .15s,transform .1s} }
+
+/* header */
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.head h1{margin:0;font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.05;text-wrap:balance}
+.head p{margin:4px 0 0;color:var(--muted)}
+.head-right{display:flex;align-items:center;gap:10px}
+.sync{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.sync.live i{background:#3FA35B;box-shadow:0 0 0 3px rgba(63,163,91,.18)}
+.sync.ro i{background:var(--option)}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.lang button{border:0;background:none;padding:6px 10px;font-size:13px;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* toolbar */
+.bar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--surface);border:1px solid var(--line);gap:2px}
+.seg button{border:0;background:none;padding:7px 14px;border-radius:9px;font-weight:600;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.tool .sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--free-line)}
+.sw.b{background:var(--booked);border-color:var(--booked)}
+.sw.o{background:repeating-linear-gradient(135deg,var(--option) 0 3px,var(--option-2) 3px 6px);border-color:var(--option)}
+.sw.f{background:var(--free)}
+.tool-wrap{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+.months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px}
+.mchip{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:14px}
+.mchip .meter{width:70%;height:4px;border-radius:2px;background:var(--line);overflow:hidden;display:flex}
+.mchip .meter span{display:block;height:100%}
+.mchip .meter .mb{background:var(--booked)} .mchip .meter .mo{background:var(--option)}
+.mchip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.mchip[aria-pressed="true"] .meter{background:rgba(127,127,127,.35)}
+.mchip.now:not([aria-pressed="true"]){border-color:var(--primary)}
+@media (max-width:720px){ .months{grid-template-columns:repeat(6,minmax(0,1fr))} }
+
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.panel-h{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;padding:16px 18px 10px}
+.panel-h h2{margin:0;font-size:20px;font-weight:700}
+.panel-h .meta{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend .sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--free-line)}
+
+/* month grid */
+.scroller{overflow-x:auto;padding:0 10px 14px}
+table.grid{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums;min-width:max-content}
+.grid th{font-weight:500;font-size:11px;color:var(--muted);text-align:center;padding:0}
+.grid thead th.day{width:26px;line-height:1.15;padding-bottom:4px;border-radius:6px}
+.grid thead th.day b{display:block;font-size:13px;color:var(--ink);font-weight:600}
+.grid thead th.we{background:var(--weekend)}
+.grid thead th.today b{color:var(--primary)}
+.grid thead th.sel{background:var(--ink)} .grid thead th.sel b,.grid thead th.sel{color:var(--bg)}
+.grid th.room{position:sticky;left:0;z-index:2;background:var(--surface);text-align:left;padding:0 10px 0 4px;min-width:140px;font-size:14px;color:var(--ink);font-weight:600;white-space:nowrap}
+.grid th.room small{display:block;font-weight:400;color:var(--muted);font-size:11px;line-height:1.1}
+.grid tr.group th{position:sticky;left:0;background:var(--surface);text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 4px 2px;font-weight:700;color:var(--primary)}
+.grid tr.hall th.room{color:var(--primary)}
+.cell{display:block;width:26px;height:28px;border-radius:7px 7px 4px 4px;border:1px solid var(--free-line);background:var(--free);padding:0}
+td.we .cell.f{background:var(--weekend)}
+.cell.b{background:var(--booked);border-color:var(--booked)}
+.cell.o{background:repeating-linear-gradient(135deg,var(--option) 0 4px,var(--option-2) 4px 8px);border-color:var(--option)}
+.cell.p{background:linear-gradient(to top,var(--booked) 0 45%,var(--free) 45%);border-color:var(--booked)}
+.cell.po{background:linear-gradient(to top,var(--option) 0 45%,var(--free) 45%);border-color:var(--option)}
+.cell:hover{transform:translateY(-1px);border-color:var(--ink)}
+td.selcol .cell{box-shadow:0 0 0 2px var(--ink)}
+.cell.hallcell{border-radius:4px}
+.ro .cell,.ro .tile,.ro .hallbtn{cursor:default}
+.ro .cell:hover{transform:none}
+
+/* day plan */
+.day-layout{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1fr);gap:16px;padding:6px 18px 18px}
+@media (max-width:820px){ .day-layout{grid-template-columns:1fr} }
+.bld{border:1px dashed var(--line-strong);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.bld-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.bld-h strong{font-size:15px}
+.bld-h span{font-size:12px;color:var(--muted)}
+.floor{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:stretch}
+.floor>.fl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding-top:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.tile{flex:var(--g) 1 120px;min-height:92px;border-radius:12px;border:1.5px solid var(--free-line);background:var(--free);text-align:left;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;position:relative}
+.tile .nm{font-weight:700;font-size:15px;line-height:1.15}
+.tile .cp{font-size:12px;opacity:.8;font-variant-numeric:tabular-nums}
+.tile .st{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.tile.stage::before{content:"";position:absolute;left:12%;right:12%;top:0;height:5px;border-radius:0 0 5px 5px;background:currentColor;opacity:.35}
+.tile.f .st{color:var(--primary)}
+.tile.b{background:var(--booked);border-color:var(--booked);color:var(--booked-ink)}
+.tile.o{background:repeating-linear-gradient(135deg,var(--option) 0 8px,var(--option-2) 8px 16px);border-color:var(--option);color:var(--option-ink)}
+.tile:hover{border-color:var(--ink)}
+.tile.foyer{min-height:64px}
+.side{display:flex;flex-direction:column;gap:12px}
+.hallbtn{border:0;border-radius:12px;padding:12px 14px;background:var(--primary);color:var(--primary-ink);font-weight:700;text-align:left;line-height:1.25}
+.hallbtn small{display:block;font-weight:500;opacity:.85;font-size:12px}
+.hallbtn[disabled]{opacity:.5;cursor:default}
+.daynav{display:flex;gap:6px}
+.daynav button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 8px;font-weight:600}
+.counts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.counts div{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.counts b{display:block;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.counts span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.banner{border-radius:12px;padding:10px 14px;font-size:14px;background:var(--surface);border:1px solid var(--option);display:flex;gap:10px;align-items:center}
+.foot{font-size:12px;color:var(--muted);text-align:center}
+</style>
+<style>
+body{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-block:max(20px,env(safe-area-inset-top)) max(48px,env(safe-area-inset-bottom));margin:0;-webkit-text-size-adjust:100%}
+.jump{display:none;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;font-weight:600;margin:0 18px 14px}
+.scroller{-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+@media (max-width:720px), (pointer:coarse){
+  .grid thead th.day{width:34px}
+  .cell{width:34px;height:38px}
+}
+@media (max-width:720px){
+  body{font-size:14px}
+  .head{align-items:flex-start}
+  .bar{flex-direction:column;align-items:stretch}
+  .seg{display:flex}
+  .seg button{flex:1;justify-content:center;padding:10px 8px}
+  .grid th.room{min-width:112px;max-width:112px;white-space:normal;font-size:13px;line-height:1.15;padding-right:6px}
+  .grid th.room small{display:none}
+  .panel-h{padding:14px 14px 8px}
+  .scroller{padding:0 0 12px}
+  .day-layout{padding:6px 12px 14px}
+  .floor{grid-template-columns:1fr}
+  .floor>.fl{padding-top:0}
+  .tile{flex-basis:calc(50% - 4px);min-height:84px}
+  .jump{display:block}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="head">
+    <div>
+      <h1 id="t-title">Saalbelegung</h1>
+      <p id="t-sub">Neustadthalle &amp; Parkhotel Neustadt · 2026–2027</p>
+    </div>
+    <div class="head-right">
+      <span class="sync" id="sync"><i></i><span id="sync-t">Verbinde…</span></span>
+      <div class="lang" role="group" aria-label="Sprache / Idioma">
+        <button id="lang-de" aria-pressed="true">DE</button>
+        <button id="lang-es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="bar">
+    <div class="tool-wrap">
+      <span class="lbl" id="t-year">Jahr</span>
+      <div class="seg" id="years" role="group"></div>
+    </div>
+    <div class="tool-wrap">
+      <span class="lbl" id="t-tool">Beim Tippen</span>
+      <div class="seg tool" id="tools" role="group"></div>
+    </div>
+  </div>
+
+  <nav class="months" id="months" aria-label="Monat"></nav>
+
+  <section class="panel" id="month-panel">
+    <div class="panel-h">
+      <h2 id="month-title">September 2026</h2>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="scroller" id="scroller"><table class="grid" id="grid"></table></div>
+    <button class="jump" id="jump">Zum Tagesplan ↓</button>
+  </section>
+
+  <section class="panel" id="day-panel">
+    <div class="panel-h">
+      <h2 id="day-title">Tagesplan</h2>
+      <span class="meta" id="day-meta"></span>
+    </div>
+    <div class="day-layout">
+      <div id="plan" style="display:flex;flex-direction:column;gap:12px">
+        <div class="bld" id="bld-nh"></div>
+        <div class="bld" id="bld-ph"></div>
+      </div>
+      <aside class="side">
+        <div class="daynav">
+          <button id="prev-day" aria-label="‹">‹</button>
+          <button id="today-btn">Heute</button>
+          <button id="next-day" aria-label="›">›</button>
+        </div>
+        <button class="hallbtn" id="hallbtn"></button>
+        <div class="counts" id="counts"></div>
+        <p class="hint" id="hint"></p>
+      </aside>
+    </div>
+  </section>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+  // ============================================================
+  //  KONFIGURATION / CONFIGURACIÓN
+  //  Pega aquí los datos de tu proyecto Firebase (ver LEEME.md).
+  //  Mientras apiKey diga "PEGAR_AQUI", la página funciona en
+  //  modo demostración (solo se guarda en este dispositivo).
+  // ============================================================
+  const FIREBASE_CONFIG = {
+    apiKey: "PEGAR_AQUI",
+    authDomain: "",
+    databaseURL: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: ""
+  };
+  // ============================================================
+
+  const ROOMS = [
+    {id:"grosser",  name:"Großer Saal",      loc:"nh", floor:"1", area:232, stage:true, sub:{de:"1. OG · 232 m² · bis 300 P.",es:"1.ª planta · 232 m² · hasta 300 p."}},
+    {id:"goetz",    name:"Götzinger Saal",   loc:"nh", floor:"2", area:115, stage:true, sub:{de:"2. OG · 115 m² · bis 130 P.",es:"2.ª planta · 115 m² · hasta 130 p."}},
+    {id:"struve",   name:"Adolph Struve",    loc:"nh", floor:"1", area:81,  sub:{de:"1. OG · 81 m² · bis 50 P.",es:"1.ª planta · 81 m² · hasta 50 p."}},
+    {id:"missbach", name:"Julius Mißbach",   loc:"nh", floor:"1", area:53,  sub:{de:"1. OG · 53 m² · bis 40 P.",es:"1.ª planta · 53 m² · hasta 40 p."}},
+    {id:"saalfoyer",name:"Saal-/Dachfoyer",  loc:"nh", floor:"1", area:70,  foyer:true, sub:{de:"Foyer · Pausen, Empfang",es:"Foyer · pausas, recepción"}},
+    {id:"eingang",  name:"Eingangsfoyer",    loc:"nh", floor:"0", area:70,  foyer:true, sub:{de:"EG · Empfang, Ausstellung",es:"Planta baja · recepción, exposición"}},
+    {id:"avocado",  name:"Avocado Salon",    loc:"ph", floor:"0", area:60,  sub:{de:"Parkhotel · bis 30 P. · Eventküche",es:"Parkhotel · hasta 30 p. · cocina propia"}}
+  ];
+  const HALL = ROOMS.filter(r=>r.loc==="nh").map(r=>r.id);
+  const YEARS = [2026,2027];
+
+  const T = {
+    de:{title:"Saalbelegung",sub:"Neustadthalle & Parkhotel Neustadt · 2026–2027",year:"Jahr",tool:"Beim Tippen",
+      tools:{b:"Reservieren",o:"Option",f:"Freigeben"},st:{f:"Frei",o:"Option",b:"Reserviert"},
+      months:["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+      mshort:["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"],
+      wd:["So","Mo","Di","Mi","Do","Fr","Sa"],wdl:["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],
+      nh:"Neustadthalle",nhsub:"J.-S.-Bach-Str. 15 · gegenüber dem Parkhotel",ph:"Parkhotel Neustadt",phsub:"J.-S.-Bach-Str. 20",
+      hall:"Ganze Neustadthalle",hallsub:"4 Säle + 2 Foyers",dayplan:"Tagesplan",today:"Heute",
+      hallAct:{b:"Ganze Neustadthalle reservieren",o:"Ganze Neustadthalle als Option",f:"Ganze Neustadthalle freigeben"},
+      hallActSub:"Großer Saal, Götzinger Saal, Struve, Mißbach, beide Foyers",
+      floors:{"2":"2. OG","1":"1. OG","0":"EG"},
+      hint:"Oben wählen, was ein Tippen bewirkt. Ein zweites Tippen mit demselben Status gibt den Raum wieder frei. Änderungen sind sofort für alle sichtbar.",
+      live:"Live",connecting:"Verbinde…",offline:"Offline",demo:"Demo",
+      demoBanner:"Demo-Modus: Die Seite ist noch nicht mit der Datenbank verbunden. Änderungen bleiben nur auf diesem Gerät.",
+      offBanner:"Keine Verbindung. Änderungen werden gespeichert, sobald das Gerät wieder online ist.",
+      err:"Änderung konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      metaMonth:(b,o)=>`${b} Raumtage reserviert · ${o} Optionen`,
+      toDay:"Zum Tagesplan ↓",
+      foot:"Raumdaten laut Tagungskatalog, Stand September 2026 · Anfragen: events@parkhotel-neustadt.de · +49 3596 562-0"},
+    es:{title:"Ocupación de salas",sub:"Neustadthalle y Parkhotel Neustadt · 2026–2027",year:"Año",tool:"Al tocar",
+      tools:{b:"Reservar",o:"Opción",f:"Liberar"},st:{f:"Libre",o:"Opción",b:"Reservado"},
+      months:["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
+      mshort:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+      wd:["Do","Lu","Ma","Mi","Ju","Vi","Sá"],wdl:["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"],
+      nh:"Neustadthalle",nhsub:"J.-S.-Bach-Str. 15 · frente al Parkhotel",ph:"Parkhotel Neustadt",phsub:"J.-S.-Bach-Str. 20",
+      hall:"Neustadthalle completa",hallsub:"4 salas + 2 foyers",dayplan:"Plano del día",today:"Hoy",
+      hallAct:{b:"Reservar toda la Neustadthalle",o:"Toda la Neustadthalle en opción",f:"Liberar toda la Neustadthalle"},
+      hallActSub:"Großer Saal, Götzinger Saal, Struve, Mißbach y ambos foyers",
+      floors:{"2":"2.ª pl.","1":"1.ª pl.","0":"PB"},
+      hint:"Arriba eliges qué hace cada toque. Un segundo toque con el mismo estado vuelve a liberar la sala. Los cambios se ven al instante para todos.",
+      live:"En vivo",connecting:"Conectando…",offline:"Sin conexión",demo:"Demo",
+      demoBanner:"Modo demostración: la página aún no está conectada a la base de datos. Los cambios solo quedan en este dispositivo.",
+      offBanner:"Sin conexión. Los cambios se guardarán en cuanto el dispositivo vuelva a estar en línea.",
+      err:"No se pudo guardar el cambio. Inténtalo de nuevo.",
+      metaMonth:(b,o)=>`${b} días-sala reservados · ${o} opciones`,
+      toDay:"Ir al plano del día ↓",
+      foot:"Datos de salas según el catálogo de eventos, septiembre 2026 · Consultas: events@parkhotel-neustadt.de · +49 3596 562-0"}
+  };
+
+  // ---------- state ----------
+  const now = new Date();
+  let lang = "de";
+  try{ const s = localStorage.getItem("sb-lang"); if(s==="es"||s==="de") lang=s; }catch(e){}
+  let tool = "b";
+  const inRange = YEARS.includes(now.getFullYear());
+  let year = inRange ? now.getFullYear() : 2026;
+  let month = inRange ? now.getMonth()+1 : 1;
+  let selDay = inRange ? now.getDate() : 1;
+  let data = {};            // { "YYYY-MM": { "DD": { room: "b"|"o" } } }
+  let mode = "connecting";  // connecting | live | offline | demo
+  let fdb = null;
+
+  const pad = n => String(n).padStart(2,"0");
+  const mk = (y,m) => `${y}-${pad(m)}`;
+  const dim = (y,m) => new Date(y,m,0).getDate();
+  const wd = (y,m,d) => new Date(y,m-1,d).getDay();
+  const isToday = (y,m,d) => y===now.getFullYear() && m===now.getMonth()+1 && d===now.getDate();
+  const get = (y,m,d,r) => { const v = data[mk(y,m)]?.[pad(d)]?.[r]; return v==="b"||v==="o" ? v : "f"; };
+  const t = () => T[lang];
+
+  function hallState(y,m,d){
+    const st = HALL.map(r=>get(y,m,d,r));
+    if(st.every(s=>s==="b")) return "b";
+    if(st.every(s=>s==="o")) return "o";
+    if(st.every(s=>s==="f")) return "f";
+    return st.includes("b") ? "p" : "po";
+  }
+
+  // ---------- storage ----------
+  const DEMO_KEY = "sb-demo-data";
+  function applyLocal(y,m,d,changes){
+    const key=mk(y,m), dd=pad(d);
+    data[key] = data[key] || {};
+    data[key][dd] = Object.assign({}, data[key][dd]||{});
+    for(const r in changes){ if(changes[r]==="f") delete data[key][dd][r]; else data[key][dd][r]=changes[r]; }
+    if(!Object.keys(data[key][dd]).length) delete data[key][dd];
+  }
+  function write(y,m,d,changes){
+    if(mode==="demo"){
+      applyLocal(y,m,d,changes);
+      try{ localStorage.setItem(DEMO_KEY, JSON.stringify(data)); }catch(e){}
+      render(); return;
+    }
+    if(!fdb) return;
+    const upd = {};
+    for(const r in changes) upd[`${mk(y,m)}/${pad(d)}/${r}`] = changes[r]==="f" ? null : changes[r];
+    applyLocal(y,m,d,changes); render();   // Firebase also fires local events immediately
+    fdb.ref("bookings").update(upd).catch(()=>{ showBanner(t().err, 5000); });
+  }
+  function toggleRoom(y,m,d,r){
+    const cur = get(y,m,d,r);
+    const next = tool==="f" ? "f" : (cur===tool ? "f" : tool);
+    if(next===cur) return;
+    write(y,m,d,{[r]:next});
+  }
+  function toggleHall(y,m,d){
+    const hs = hallState(y,m,d);
+    const next = tool==="f" ? "f" : (hs===tool ? "f" : tool);
+    const c = {}; HALL.forEach(r=>c[r]=next);
+    write(y,m,d,c);
+  }
+
+  // ---------- render ----------
+  const $ = id => document.getElementById(id);
+  function el(tag, attrs, html){ const e=document.createElement(tag); if(attrs) for(const k in attrs){ if(k==="class") e.className=attrs[k]; else e.setAttribute(k,attrs[k]); } if(html!=null) e.innerHTML=html; return e; }
+
+  function renderStatic(){
+    const L=t();
+    document.documentElement.lang = lang;
+    document.title = L.title + " · Neustadthalle";
+    $("t-title").textContent=L.title; $("t-sub").textContent=L.sub;
+    $("t-year").textContent=L.year; $("t-tool").textContent=L.tool;
+    $("lang-de").setAttribute("aria-pressed", lang==="de"); $("lang-es").setAttribute("aria-pressed", lang==="es");
+    $("today-btn").textContent=L.today; $("hint").textContent=L.hint; $("foot").textContent=L.foot;
+    $("jump").textContent=L.toDay;
+    $("legend").innerHTML = ["f","o","b"].map(s=>`<span><i class="sw ${s}"></i>${L.st[s]}</span>`).join("");
+    const ys=$("years"); ys.innerHTML="";
+    YEARS.forEach(y=>{ const b=el("button",{"aria-pressed":y===year},String(y)); b.onclick=()=>{year=y; selDay=Math.min(selDay,dim(year,month)); render();}; ys.appendChild(b); });
+    const ts=$("tools"); ts.innerHTML="";
+    ["b","o","f"].forEach(k=>{ const b=el("button",{"aria-pressed":k===tool},`<i class="sw ${k}"></i>${L.tools[k]}`); b.onclick=()=>{tool=k; render();}; ts.appendChild(b); });
+    const s=$("sync"); s.className="sync"+(mode==="live"?" live":mode==="connecting"?"":" ro");
+    $("sync-t").textContent = L[mode];
+  }
+
+  function renderMonths(){
+    const L=t(), box=$("months"); box.innerHTML="";
+    for(let m=1;m<=12;m++){
+      const days=dim(year,m); let b=0,o=0;
+      const md=data[mk(year,m)]||{};
+      for(const dd in md) for(const r in md[dd]){ if(md[dd][r]==="b") b++; else if(md[dd][r]==="o") o++; }
+      const tot=days*ROOMS.length;
+      const btn=el("button",{class:"mchip"+(year===now.getFullYear()&&m===now.getMonth()+1?" now":""),"aria-pressed":m===month,title:`${L.months[m-1]} ${year}: ${b} ${L.st.b} · ${o} ${L.st.o}`},
+        `${L.mshort[m-1]}<span class="meter"><span class="mb" style="width:${(b/tot*100).toFixed(1)}%"></span><span class="mo" style="width:${(o/tot*100).toFixed(1)}%"></span></span>`);
+      btn.onclick=()=>{ month=m; selDay=Math.min(selDay,dim(year,month)); render(); };
+      box.appendChild(btn);
+    }
+  }
+
+  function renderGrid(){
+    const L=t(), days=dim(year,month), g=$("grid");
+    $("month-title").textContent = `${L.months[month-1]} ${year}`;
+    let h = `<thead><tr><th class="room"></th>`;
+    for(let d=1;d<=days;d++){
+      const w=wd(year,month,d), we=(w===0||w===6);
+      h += `<th class="day${we?" we":""}${isToday(year,month,d)?" today":""}${d===selDay?" sel":""}" data-d="${d}">${L.wd[w]}<b>${d}</b></th>`;
+    }
+    h += `</tr></thead><tbody>`;
+    const cellRow=(r)=>{ let s=""; for(let d=1;d<=days;d++){ const w=wd(year,month,d), st=get(year,month,d,r.id);
+        s+=`<td class="${(w===0||w===6)?"we":""}${d===selDay?" selcol":""}"><button class="cell ${st}" data-r="${r.id}" data-d="${d}" aria-label="${r.name}, ${pad(d)}.${pad(month)}.${year}: ${L.st[st]}" title="${r.name} · ${L.wd[w]} ${pad(d)}.${pad(month)}.${year} · ${L.st[st]}"></button></td>`; } return s; };
+    h += `<tr class="group"><th class="gh">${L.nh}</th><td colspan="${days}"></td></tr>`;
+    h += `<tr class="hall"><th class="room">${L.hall}<small>${L.hallsub}</small></th>`;
+    for(let d=1;d<=days;d++){ const w=wd(year,month,d), hs=hallState(year,month,d);
+      h+=`<td class="${(w===0||w===6)?"we":""}${d===selDay?" selcol":""}"><button class="cell hallcell ${hs}" data-hall="1" data-d="${d}" aria-label="${L.hall}, ${pad(d)}.${pad(month)}.${year}" title="${L.hall} · ${pad(d)}.${pad(month)}.${year}"></button></td>`; }
+    h += `</tr>`;
+    ROOMS.filter(r=>r.loc==="nh").forEach(r=>{ h+=`<tr><th class="room">${r.name}<small>${r.sub[lang]}</small></th>${cellRow(r)}</tr>`; });
+    h += `<tr class="group"><th class="gh">${L.ph}</th><td colspan="${days}"></td></tr>`;
+    ROOMS.filter(r=>r.loc==="ph").forEach(r=>{ h+=`<tr><th class="room">${r.name}<small>${r.sub[lang]}</small></th>${cellRow(r)}</tr>`; });
+    h += `</tbody>`;
+    g.innerHTML = h;
+  }
+
+  function tile(r){
+    const L=t(), st=get(year,month,selDay,r.id);
+    const cls=`tile ${st}${r.stage?" stage":""}${r.foyer?" foyer":""}`;
+    return `<button class="${cls}" style="--g:${r.area}" data-tile="${r.id}" aria-label="${r.name}: ${L.st[st]}"><span><span class="nm">${r.name}</span><br><span class="cp">${r.sub[lang]}</span></span><span class="st">${L.st[st]}</span></button>`;
+  }
+  function renderDay(){
+    const L=t(), w=wd(year,month,selDay);
+    $("day-title").textContent = `${L.dayplan} · ${L.wdl[w]}, ${pad(selDay)}.${pad(month)}.${year}`;
+    const byFloor = f => ROOMS.filter(r=>r.loc==="nh"&&r.floor===f);
+    $("bld-nh").innerHTML = `<div class="bld-h"><strong>${L.nh}</strong><span>${L.nhsub}</span></div>`+
+      ["2","1","0"].map(f=>`<div class="floor"><span class="fl">${L.floors[f]}</span><div class="row">${byFloor(f).map(tile).join("")}</div></div>`).join("");
+    $("bld-ph").innerHTML = `<div class="bld-h"><strong>${L.ph}</strong><span>${L.phsub}</span></div><div class="floor"><span class="fl">${L.floors["0"]}</span><div class="row">${ROOMS.filter(r=>r.loc==="ph").map(tile).join("")}</div></div>`;
+    const hs=hallState(year,month,selDay);
+    const act = tool==="f" ? "f" : (hs===tool ? "f" : tool);
+    $("hallbtn").innerHTML = `${L.hallAct[act]}<small>${L.hallActSub}</small>`;
+    const c={f:0,o:0,b:0}; ROOMS.forEach(r=>c[get(year,month,selDay,r.id)]++);
+    $("counts").innerHTML = ["f","o","b"].map(k=>`<div><b>${c[k]}</b><span>${L.st[k]}</span></div>`).join("");
+    let b=0,o=0; const days=dim(year,month);
+    for(let d=1;d<=days;d++) ROOMS.forEach(r=>{const s=get(year,month,d,r.id); if(s==="b")b++; else if(s==="o")o++;});
+    $("day-meta").textContent = L.metaMonth(b,o);
+  }
+
+  function render(){ renderStatic(); renderMonths(); renderGrid(); renderDay(); }
+
+  // ---------- events ----------
+  $("grid").addEventListener("click", e=>{
+    const th = e.target.closest("th.day"); if(th){ selDay=+th.dataset.d; render(); return; }
+    const b = e.target.closest("button.cell"); if(!b) return;
+    const d=+b.dataset.d; selDay=d;
+    if(b.dataset.hall) toggleHall(year,month,d); else toggleRoom(year,month,d,b.dataset.r);
+    render();
+  });
+  $("plan").addEventListener("click", e=>{
+    const b=e.target.closest("[data-tile]"); if(!b) return; toggleRoom(year,month,selDay,b.dataset.tile);
+  });
+  $("hallbtn").onclick=()=>toggleHall(year,month,selDay);
+  function shiftDay(n){
+    const dt=new Date(year,month-1,selDay+n); const y=dt.getFullYear();
+    if(!YEARS.includes(y)) return; year=y; month=dt.getMonth()+1; selDay=dt.getDate(); render();
+  }
+  $("prev-day").onclick=()=>shiftDay(-1); $("next-day").onclick=()=>shiftDay(1);
+  $("today-btn").onclick=()=>{ if(inRange){ year=now.getFullYear(); month=now.getMonth()+1; selDay=now.getDate(); render(); } };
+  $("jump").onclick=()=>$("day-panel").scrollIntoView({behavior:"smooth",block:"start"});
+  function setLang(l){ lang=l; try{localStorage.setItem("sb-lang",l);}catch(e){} render(); if(mode==="demo") showBanner(t().demoBanner); }
+  $("lang-de").onclick=()=>setLang("de"); $("lang-es").onclick=()=>setLang("es");
+
+  let bannerTimer=null;
+  function showBanner(msg, ms){ const b=$("banner"); b.textContent=msg; b.hidden=false; clearTimeout(bannerTimer); if(ms) bannerTimer=setTimeout(()=>{b.hidden=true;},ms); }
+  function hideBanner(){ $("banner").hidden=true; }
+
+  // scroll the month grid so the selected day is visible (useful on phones)
+  function scrollToSel(){
+    const sc=$("scroller"), th=document.querySelector("#grid th.day.sel");
+    if(sc && th && sc.scrollWidth>sc.clientWidth){ sc.scrollLeft = Math.max(0, th.offsetLeft - 150); }
+  }
+
+  render(); scrollToSel();
+
+  // ---------- connect ----------
+  const configured = FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey!=="PEGAR_AQUI" && FIREBASE_CONFIG.databaseURL;
+  if(!configured || typeof firebase==="undefined"){
+    mode="demo";
+    try{ data = JSON.parse(localStorage.getItem(DEMO_KEY)||"{}")||{}; }catch(e){ data={}; }
+    showBanner(t().demoBanner); render(); return;
+  }
+  firebase.initializeApp(FIREBASE_CONFIG);
+  fdb = firebase.database();
+  fdb.ref(".info/connected").on("value", s=>{
+    if(s.val()===true){ if(mode!=="live"){ mode="live"; hideBanner(); render(); } }
+    else if(mode==="live"){ mode="offline"; showBanner(t().offBanner); render(); }
+  });
+  fdb.ref("bookings").on("value", s=>{
+    data = s.val() || {};
+    if(mode==="connecting") mode="live";
+    render();
+  }, ()=>{ showBanner(t().err); });
+})();
+</script>
+</body>
+</html>
